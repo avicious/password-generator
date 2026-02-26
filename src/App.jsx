@@ -1,140 +1,111 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Copy, CopyCheck } from "lucide-react";
 
 const App = () => {
   const [options, setOptions] = useState({
-    length: 10,
-    upper: false,
-    lower: false,
-    num: false,
+    length: 12,
+    uppercase: true,
+    lowercase: true,
+    number: false,
     symbols: false,
-    isError: false,
   });
 
-  const [isError, setIsError] = useState(false);
+  const [error, setError] = useState("");
   const [generatedPassword, setGeneratedPassword] = useState("");
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCheckboxChange = (key) => {
+    setOptions((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const generateRandomPassword = () => {
-    if (
-      !options?.upper &&
-      !options?.lower &&
-      !options?.num &&
-      !options?.symbols
-    ) {
-      setIsError(true);
+    const { uppercase, lowercase, number, symbols, length } = options;
+
+    if (!uppercase && !lowercase && !number && !symbols) {
+      setError("Please select at least one character type.");
       return;
     }
+    setError("");
 
-    setIsError(false);
+    const charset = {
+      uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      lowercase: "abcdefghijklmnopqrstuvwxyz",
+      number: "0123456789",
+      symbols: "!@#$%^&*()_+-={}[]|:;<>,.?/~",
+    };
 
-    const upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const lowerChars = "abcdefghijklmnopqrstuvwxyz";
-    const numChars = "1234567890";
-    const symbolsChars = "!@#$%^&*()_+-={}[]|:;<>,.?/~";
+    let availableChars = "";
+    if (uppercase) availableChars += charset.uppercase;
+    if (lowercase) availableChars += charset.lowercase;
+    if (number) availableChars += charset.number;
+    if (symbols) availableChars += charset.symbols;
 
-    let passwordChars = "";
     let password = "";
+    const array = new Uint32Array(Number(length));
+    window.crypto.getRandomValues(array);
 
-    if (options.upper) {
-      passwordChars += upperChars;
-    }
-
-    if (options.lower) {
-      passwordChars += lowerChars;
-    }
-
-    if (options.num) {
-      passwordChars += numChars;
-    }
-
-    if (options.symbols) {
-      passwordChars += symbolsChars;
-    }
-
-    const passwordLength = options.length;
-
-    for (let i = 0; i < passwordLength; i++) {
-      const randomIndex = Math.floor(Math.random() * passwordChars.length);
-      password += passwordChars[randomIndex];
+    for (let i = 0; i < length; i++) {
+      password += availableChars[array[i] % availableChars.length];
     }
 
     setGeneratedPassword(password);
   };
 
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedPassword);
+      setIsCopied(true);
+    } catch (err) {
+      setError("Failed to copy!");
+    }
+  };
+
+  useEffect(() => {
+    if (isCopied) {
+      const timeout = setTimeout(() => setIsCopied(false), 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isCopied]);
+
   return (
     <div className="container">
       <div className="card">
         <div className="card-header">
-          <h1 className="title">Generate Password</h1>
+          <h1 className="title">Password Generator</h1>
         </div>
 
         <div className="card-body">
-          <label htmlFor="">Password length</label>
+          <div className="input-group">
+            <label>Length: {options.length}</label>
 
-          <input
-            type="number"
-            value={options.length}
-            name="confirmPassword"
-            placeholder="Password length"
-            min={4}
-            max={32}
-            onChange={({ target }) => {
-              setOptions({ ...options, length: target.value });
-            }}
-          />
-
-          <div className="row">
-            <div className="checkbox-container">
-              <input
-                type="checkbox"
-                id="upper"
-                checked={options.upper}
-                onChange={() => {
-                  setOptions({ ...options, upper: !options.upper });
-                }}
-              />
-              <label htmlFor="upper">Uppercase</label>
-            </div>
-
-            <div className="checkbox-container">
-              <input
-                type="checkbox"
-                id="lower"
-                checked={options.lower}
-                onChange={() => {
-                  setOptions({ ...options, lower: !options.lower });
-                }}
-              />
-              <label htmlFor="lower">Lowercase</label>
-            </div>
-
-            <div className="checkbox-container">
-              <input
-                type="checkbox"
-                id="num"
-                checked={options.num}
-                onChange={() => {
-                  setOptions({ ...options, num: !options.num });
-                }}
-              />
-              <label htmlFor="num">Number</label>
-            </div>
-
-            <div className="checkbox-container">
-              <input
-                type="checkbox"
-                id="symbols"
-                checked={options.symbols}
-                onChange={() => {
-                  setOptions({ ...options, symbols: !options.symbols });
-                }}
-              />
-              <label htmlFor="symbols">Symbols</label>
-            </div>
+            <input
+              type="range"
+              min={4}
+              max={32}
+              value={options.length}
+              onChange={(e) =>
+                setOptions({ ...options, length: parseInt(e.target.value) })
+              }
+            />
           </div>
 
-          {isError && (
-            <span className="error">Please select at least one option.</span>
-          )}
+          <div className="options-grid">
+            {["uppercase", "lowercase", "number", "symbols"].map((key) => (
+              <div key={key} className="checkbox-container">
+                <input
+                  type="checkbox"
+                  id={key}
+                  checked={options[key]}
+                  onChange={() => handleCheckboxChange(key)}
+                />
+                <label htmlFor={key}>
+                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                </label>
+              </div>
+            ))}
+          </div>
+
+          {error && <span className="error">{error}</span>}
 
           <button className="btn" onClick={generateRandomPassword}>
             Generate Password
@@ -144,8 +115,14 @@ const App = () => {
 
       {generatedPassword && (
         <div className="password">
-          <label>Generated Password:</label>
           <p>{generatedPassword}</p>
+          <button onClick={copyToClipboard} className="copy-btn">
+            {isCopied ? (
+              <CopyCheck color="#4BB543" size={20} />
+            ) : (
+              <Copy color="#a2a2a2" size={20} />
+            )}
+          </button>
         </div>
       )}
     </div>
