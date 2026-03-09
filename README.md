@@ -2,7 +2,7 @@
 
 A sleek, secure, and responsive password generator built with **React** and **Modern CSS**. This component provides a high-entropy password generation tool with a focus on user experience and security.
 
-## ✨ Features
+## Features
 
 - **Secure Generation:** Uses `window.crypto.getRandomValues()` instead of `Math.random()` for cryptographically strong, unpredictable passwords.
 - **Customizable Criteria:** Toggle Uppercase, Lowercase, Numbers, and Symbols.
@@ -13,7 +13,7 @@ A sleek, secure, and responsive password generator built with **React** and **Mo
   - **Interactive Toggles:** Large click targets with visual feedback using the `:has()` selector.
 - **One-Click Copy:** Integrated Clipboard API to copy generated passwords instantly.
 
-## 🔍 How It Works
+## How It Works
 
 The password generation process follows a structured pipeline to ensure both user requirements and security standards are met.
 
