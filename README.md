@@ -2,6 +2,10 @@
 
 A sleek, secure, and responsive password generator built with **React** and **Modern CSS**. This component provides a high-entropy password generation tool with a focus on user experience and security.
 
+## Live Demo
+
+**Check out the live version of this project here:** [avicious.github.io/password-generator/](https://avicious.github.io/password-generator/)
+
 ## Features
 
 - **Secure Generation:** Uses `window.crypto.getRandomValues()` instead of `Math.random()` for cryptographically strong, unpredictable passwords.
